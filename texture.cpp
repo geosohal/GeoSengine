@@ -39,9 +39,10 @@ bool Texture::Load(bool isHDR)
     GL::glGenTextures(1, &textureId);   // Get an integer id for thi texture from OpenGL
     GL::glBindTexture(GL_TEXTURE_2D, textureId);
 
-    //GL::glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    //hdr image
-    GL::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F_ARB, width, height, 0, GL_RGB, GL_FLOAT, image);
+    if (!isHDR)
+        GL::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    else //hdr image
+        GL::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F_ARB, width, height, 0, GL_RGB, GL_FLOAT, image);
     CHECKERRORNOX
     GL::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 100);
     GL::glGenerateMipmap(GL_TEXTURE_2D);

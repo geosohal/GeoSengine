@@ -22,7 +22,7 @@ uniform sampler2D gColorMap;
 void main()									
 {											
 	WorldPosOut     = WorldPos0; //100.0;					
-        DiffuseOut      = vec3(1,0,0);// texture(gColorMap, TexCoord0).xyz;
+        DiffuseOut      =  texture(gColorMap, TexCoord0).xyz;
 
 	NormalOut       = normalize(Normal0);		
 
@@ -30,5 +30,5 @@ void main()
 ///    float Depth = texture(depthMap, TexCoord0).x;
 ///    Depth = clamp( (Depth-MIN_DEPTH) / (MAX_DEPTH - MIN_DEPTH), 0,1)*5.f;
 	
-        TexCoordOut     = vec3(TexCoord0, 1);
+        TexCoordOut     = vec3(TexCoord0, 0.0);
 }

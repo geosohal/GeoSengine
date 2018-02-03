@@ -58,6 +58,7 @@ private:
   Transform3D m_transform;
 //  MAT4 worldProj;
   GBuffer gbuffer;
+  ShaderProgram* simpleShader;
   DirLightProgram* dirLightShader;
   ShaderProgram* lightShader;
   ShaderProgram* aoProgram;
@@ -72,6 +73,8 @@ private:
 
   // Scene items
   BasicMesh* dragonMesh;
+  BasicMesh* floor;
+  BasicMesh* spider;
   BasicMesh* quad; // used for full screen quad on light pass
 };
 

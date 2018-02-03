@@ -10,6 +10,7 @@ void Transform3D::translate(const QVector3D &dt)
 {
   m_dirty = true;
   m_translation += dt;
+  printf("tes");
 }
 
 void Transform3D::scale(const QVector3D &ds)

@@ -79,15 +79,14 @@ bool BasicMesh::LoadMesh(const string& Filename)
 
     bool Ret = false;
     Assimp::Importer Importer;
-    aiMatrix3x3 m;
-    m.a2 = 1;
-    m = m.Transpose();
 
-    const aiScene* pScene = Importer.ReadFile(Filename.c_str(), aiProcess_GenSmoothNormals |
+    const aiScene* pScene = Importer.ReadFile(Filename.c_str(), ASSIMP_LOAD_FLAGS);
+
+                                              /*aiProcess_GenSmoothNormals |
                                               aiProcess_Triangulate |
                                               aiProcess_JoinIdenticalVertices |
                                               aiProcess_SortByPType
-                                              );
+                                              );*/
     if (pScene) {
         Ret = InitFromScene(pScene, Filename);
         Ret = true;

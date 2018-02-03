@@ -45,7 +45,6 @@ uniform float gMatSpecularIntensity = 1.0f;
 uniform float gSpecularPower = 36;
 uniform int gLightType;
 uniform vec2 gScreenSize;
-uniform vec4 custColor;
 
 vec4 CalcLightInternal(BaseLight Light,
                                            vec3 LightDirection,
@@ -54,6 +53,7 @@ vec4 CalcLightInternal(BaseLight Light,
 {
     vec4 AmbientColor = vec4(Light.Color * Light.AmbientIntensity, 1.0);
     float DiffuseFactor = dot(Normal, -LightDirection);
+        DiffuseFactor = .5;	// temp for debug
 
     vec4 DiffuseColor  = vec4(0, 0, 0, 0);
     vec4 SpecularColor = vec4(0, 0, 0, 0);
@@ -63,11 +63,7 @@ vec4 CalcLightInternal(BaseLight Light,
 
         vec3 VertexToEye = normalize(gEyeWorldPos - WorldPos);
         vec3 LightReflect = normalize(reflect(LightDirection, Normal));
-        float SpecularFactor = dot(VertexToEye, LightReflect);
-        if (SpecularFactor > 0.0) {
-            SpecularFactor = pow(SpecularFactor, gSpecularPower);
-            SpecularColor = vec4(Light.Color * gMatSpecularIntensity * SpecularFactor, 1.0);
-        }
+        float SpecularFactor = 0; // temp for debug
     }
 
     return (AmbientColor + DiffuseColor + SpecularColor);
@@ -97,5 +93,6 @@ void main()
         vec3 Color = texture(gColorMap, TexCoord).xyz;
         vec3 Normal = texture(gNormalMap, TexCoord).xyz;
         Normal = normalize(Normal);
-        FragColor = vec4(Color, 1.0)*.3 + vec4(Color, 1.0)* CalcDirectionalLight(WorldPos, Normal);
+         FragColor = vec4(1,1,1, 1.0)*.3 + vec4(Color, 1.0)* CalcDirectionalLight(WorldPos, Normal);
+      //  FragColor = vec4(Color, 1.0) * CalcDirectionalLight(WorldPos, Normal);
 }

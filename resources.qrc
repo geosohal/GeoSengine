@@ -2,5 +2,17 @@
     <qresource prefix="/">
         <file>shaders/simple.frag</file>
         <file>shaders/simple.vert</file>
+        <file>shaders/ambientOcclusion.fs</file>
+        <file>shaders/ambientOcclusion.vs</file>
+        <file>shaders/bilateralBlur.comp</file>
+        <file>shaders/bilateralBlurV.comp</file>
+        <file>shaders/blurPass.comp</file>
+        <file>shaders/blurPassV.comp</file>
+        <file>shaders/dirLightPass.fs</file>
+        <file>shaders/geometry_pass.fs</file>
+        <file>shaders/geometry_pass.vs</file>
+        <file>shaders/IBL.fs</file>
+        <file>shaders/IBL.vs</file>
+        <file>shaders/lightPass.vs</file>
     </qresource>
 </RCC>
