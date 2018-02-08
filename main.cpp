@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
   }
 
 #ifdef    GL_DEBUG
-  format->setOption(QSurfaceFormat::DebugContext);
+  //format->setOption(QSurfaceFormat::);
 #endif // GL_DEBUG
   format->setDepthBufferSize(0);
 

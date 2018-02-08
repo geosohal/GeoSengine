@@ -11,7 +11,7 @@
 
 
 
-#define GBUFFDEBUG // also (un)comment define in glbuffer.h
+//#define GBUFFDEBUG // also (un)comment define in glbuffer.cpp
 #define DEFERRED
 #define CHECKERRORNOX {GLenum err = GL::glGetError(); if (err != GL_NO_ERROR) { fprintf(stderr, "OpenGL werror (at line %d):\n m:%i", __LINE__, err); } }
 
@@ -41,8 +41,8 @@ void Window::initializeGL()
 
     // Set global information
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    // Enable OpenGL depth-testing
-    // glEnable(GL_DEPTH_TEST);
+
+
     // Application-specific initialization
     {
         //    // Create Shader (Do not release until VAO is created)
@@ -76,10 +76,10 @@ void Window::initializeGL()
         //    m_vertex.release();
         //    m_program->release();
     }
-    lightShader = new ShaderProgram();
-    lightShader->AddShader("/home/geo5/GeoSengine/shaders/geometry_pass.vs", GL_VERTEX_SHADER);
-    lightShader->AddShader("/home/geo5/GeoSengine/shaders/geometry_pass.fs", GL_FRAGMENT_SHADER);
-    lightShader->LinkProgram();
+    geomShader = new ShaderProgram();
+    geomShader->AddShader("/home/geo5/GeoSengine/shaders/geometry_pass.vs", GL_VERTEX_SHADER);
+    geomShader->AddShader("/home/geo5/GeoSengine/shaders/geometry_pass.fs", GL_FRAGMENT_SHADER);
+    geomShader->LinkProgram();
     DirectionalLight dirLight;
     dirLight.ambientIntensity = 0.4f;
     dirLight.color = vec3(1.0f, 1.0f, 1.0f);
@@ -157,34 +157,40 @@ void Window::initializeGL()
     }
 #else
     simpleShader = new ShaderProgram();
-    simpleShader->AddShader("/home/geo5/GeoSengine/shaders/simple.vs", GL_VERTEX_SHADER);
-    simpleShader->AddShader("/home/geo5/GeoSengine/shaders/simple.fs", GL_FRAGMENT_SHADER);
+    simpleShader->AddShader("/home/geo5/GeoSengine/shaders/simple.vert", GL_VERTEX_SHADER);
+    simpleShader->AddShader("/home/geo5/GeoSengine/shaders/simple.frag", GL_FRAGMENT_SHADER);
+    simpleShader->LinkProgram();
 #endif
 
+    timer.start();
     printf("\n");
 
 }
 
 void Window::resizeGL(int width, int height)
 {
-    m_projection.setToIdentity();
-    m_projection.perspective(45.0f, width / float(height), 0.0f, 2000.0f);
+    m_projection = Identity;
+    float ry = .4f;  float front = 0.1; float back = 200.0f;
+    m_projection =  Perspective((ry*width) / height, ry, front, back);
+    // m_projection.perspective(45.0f, width / float(height), 0.0f, 2000.0f);
+
     // worldProj = Perspective((m_camera.ry*width) / height, m_camera.ry, m_camera.front, m_camera.back);
     // dirLightShader->SetScreenSize(width, height);
 
 }
 
+
+float tsin;
 void Window::paintGL()
 {
 
-
+#ifdef DEFERRED
     // from DS geometry pass
     gbuffer.DrawBind();// all depth and color writes now go to gbuffer's textures
-    CHECKERRORNOX
-        #ifndef GBUFFDEBUG
-            //prevent anything but this pass from writing into the depth buffer
-            // as the light pass doesnt have anythign to write into it
-            glDepthMask(GL_TRUE);
+#ifndef GBUFFDEBUG
+    //prevent anything but this pass from writing into the depth buffer
+    // as the light pass doesnt have anythign to write into it
+    glDepthMask(GL_TRUE);
 #endif
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #ifndef GBUFFDEBUG
@@ -192,41 +198,53 @@ void Window::paintGL()
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND); // the light passes use blending, dont need it here
 #endif
+#else   // is not deferred so just clear screen and depth
+//    glFrontFace(GL_CW);
+//    glCullFace(GL_BACK);
+//    glEnable(GL_CULL_FACE);
 
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+#endif
+    MAT4 viewmatrix = m_camera.getViewMatrix();
+    MAT4 VPmatrix = m_projection*viewmatrix; // view projection matrix
+    ShaderProgram* currShader;
 #ifdef DEFERRED
-    lightShader->Use();
-    // model, view - from cam, projection
-    const float* VPmatrix = ( m_projection * m_camera.toMatrix() ).constData();
-    lightShader->SetUniform4v("gVP", VPmatrix );
-    MAT4 wtrans = Translate(-2.f,-4,-4)* Scale(0.5f, 0.5f, 0.5f);
-    MAT4 invw;
-    invert(&wtrans, &invw);
-    lightShader->SetUniform4v("gWorld", wtrans );
-    dragonMesh->Render();
-
-    //  wtrans = Translate(-2.f,-4,-8)* Scale(5.5f, 0.5f, 5.5f);
-    //  lightShader->SetUniform4v("gWorld", wtrans );
-    //  floor->Render();
-
-    wtrans = Translate(2.f,-4,-8)* Scale(1.1f, 1.1f, 1.1f);
-    lightShader->SetUniform4v("gWorld", wtrans );
-    //  spider->Render();
+    currShader = geomShader;
 #else
-    simpleShader->Use();
-    simpleShader->SetUniform4v("cameraToView", m_camera.toMatrix());
-   // MAT4 wtrans = Translate(-2.f,-4,-4)* Scale(0.5f, 0.5f, 0.5f);
-    //simpleShader->SetUniform4v("worldToCamera" ");
+    currShader = simpleShader;
 #endif
 
-    CHECKERRORNOX
-            lightShader->Unuse();
 
-    QVector3D eye = m_camera.translation();
+     currShader->Use();
+
+    currShader->SetUniform4v("gVP", VPmatrix );
+    MAT4 wtrans = Translate(-2.f,-4.2,-4.1)* Scale(1.5f, 1.5f, 1.5f);
+    currShader->SetUniform4v("gWorld", wtrans );
+    dragonMesh->Render();
+
+
+    wtrans = Translate(2.2f+tsin*2,-1.8+tsin*3,-1+tsin*4)* Scale(0.21f, 0.21f, 0.21f);
+    currShader->SetUniform4v("gWorld", wtrans );
+
+    MAT4 wvp = VPmatrix * wtrans;
+    vec4 testPos = vec4(4,5,2,1);
+    testPos = MAT4toGLM(wvp) * testPos;
+
+    wtrans = Translate(1.2f+tsin*2,tsin,-1+tsin)* Scale(0.21f, 0.21f, 0.21f);
+    wvp = VPmatrix * wtrans;
+    testPos = vec4(4,5,2,1);
+    testPos = MAT4toGLM(wvp) * testPos;
+
+      spider->Render();
+    currShader->Unuse();
+
+    vec3 eye = m_camera.translation();
     // Deferred shading light pass
-#ifndef GBUFFDEBUG
+
 #ifdef DEFERRED
     {
+        #ifndef GBUFFDEBUG
         glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
         // begin light passes by setting blending so we can add the output of
@@ -239,46 +257,46 @@ void Window::paintGL()
         glClear(GL_COLOR_BUFFER_BIT);
 
 
-        //      aoFbo.BindForWrite();	// from now on all color writes will goto aoFBO.aoTexture?
-        //      glClear(GL_COLOR_BUFFER_BIT);	// if we dont clear texture keeps accumulating the writes
-        //      aoProgram->Use();
-        //      aoProgram->SetUniformi("positionMap", GBuffer::GBUFFER_TYPE_POS);
-        //      aoProgram->SetUniformi("normalMap", GBuffer::GBUFFER_TYPE_NORMAL);
-        //      aoProgram->SetUniformi("depthMap", GBuffer::GBUFFER_TYPE_SPEC);	// specular is not spec, but it has
-        //      //depth in .z component of the vec3
-        //      quad->Render();
-        //      aoFbo.UnbindWrite();	// switch back to default framebuffer
+      aoFbo.BindForWrite();	// from now on all color writes will goto aoFBO.aoTexture?
+      glClear(GL_COLOR_BUFFER_BIT);	// if we dont clear texture keeps accumulating the writes
+      aoProgram->Use();
+      aoProgram->SetUniformi("positionMap", GBuffer::GBUFFER_TYPE_POS);
+      aoProgram->SetUniformi("normalMap", GBuffer::GBUFFER_TYPE_NORMAL);
+      aoProgram->SetUniformi("depthMap", GBuffer::GBUFFER_TYPE_SPEC);	// specular is not spec, but it has
+      //depth in .z component of the vec3
+      quad->Render();
+      aoFbo.UnbindWrite();	// switch back to default framebuffer
 
-        //      // todo add bilateral blur
+      // todo add bilateral blur
 
-        //      envMap->Bind(GL_TEXTURE0 + 8);
-        //      irradMap->Bind(GL_TEXTURE0 + 9);
-        //      iblShader->Use();
-        //      iblShader->SetEnvMapTU(8);
-        //      iblShader->SetIrradTU(9);
-        //      iblShader->SetVP(VPmatrix);
-        //      iblShader->SetWorldMatrix(Identity);
-        //      iblShader->SetAOMap(aoFbo.aoTexture);
-        //      aoFbo.BindForRead(GL_TEXTURE0 + aoFbo.aoTexture);
-        //      iblShader->SetNormalTU(GBuffer::GBUFFER_TYPE_NORMAL);
-        //      iblShader->SetPosTU(GBuffer::GBUFFER_TYPE_POS);
-        //      iblShader->SetUniformi("colorMap",  GBuffer::GBUFFER_TYPE_DIFFUSE);
-        //      iblShader->SetEyePos(vec3(eye.x(), eye.y(), eye.z()));
-        //      iblShader->SetScreenDim(this->width(), this->height());
-        //      quad->Render();
+      envMap->Bind(GL_TEXTURE0 + 8);
+      irradMap->Bind(GL_TEXTURE0 + 9);
+      iblShader->Use();
+      iblShader->SetEnvMapTU(8);
+      iblShader->SetIrradTU(9);
+      iblShader->SetVP(VPmatrix);
+      iblShader->SetWorldMatrix(Identity);
+      iblShader->SetAOMap(aoFbo.aoTexture);
+      aoFbo.BindForRead(GL_TEXTURE0 + aoFbo.aoTexture);
+      iblShader->SetNormalTU(GBuffer::GBUFFER_TYPE_NORMAL);
+      iblShader->SetPosTU(GBuffer::GBUFFER_TYPE_POS);
+      iblShader->SetUniformi("colorMap",  GBuffer::GBUFFER_TYPE_DIFFUSE);
+      iblShader->SetEyePos(vec3(eye.x, eye.y, eye.z));
+      iblShader->SetScreenDim(this->width(), this->height());
+      quad->Render();
 
 
 
         // directinal light pass
         dirLightShader->Use();
-        dirLightShader->SetEyeWorldPos(eye.x(),eye.y(),eye.z());
+        dirLightShader->SetEyeWorldPos(eye.x,eye.y,eye.z);
         dirLightShader->SetWVP(Identity);
         quad->Render();
-        CHECKERRORNOX
-                dirLightShader->Unuse();
-#endif
+        dirLightShader->Unuse();
+    #endif
     }
 #endif
+
 #ifdef GBUFFDEBUG
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // restore default fbo(screen) and clear it
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -310,11 +328,28 @@ void Window::teardownGL()
     // Actually destroy our OpenGL information
     //  m_object.destroy();
     //  m_vertex.destroy();
-    //  delete m_program;
+    delete dragonMesh;
+    delete floor;
+    delete spider;
+    delete quad;
+    delete simpleShader;
+    delete dirLightShader;
+    delete geomShader;
+    delete aoProgram;
+    delete iblShader;
+    delete envMap;
+    delete irradMap;
+
 }
 
+float last_time = 0;
 void Window::update()
 {
+    float now = timer.elapsed();
+    float timeSinceUpdate = (now - last_time);
+
+    tsin = sin(now/500.f);
+
     // Update input
     Input::update();
 
@@ -322,14 +357,14 @@ void Window::update()
     if (Input::buttonPressed(Qt::RightButton))
     {
         static const float transSpeed = 0.5f;
-        static const float rotSpeed   = 0.5f;
+        static const float rotSpeed   = 0.05f;
 
         // Handle rotations
         m_camera.rotate(-rotSpeed * Input::mouseDelta().x(), Camera3D::LocalUp);
         m_camera.rotate(-rotSpeed * Input::mouseDelta().y(), m_camera.right());
 
         // Handle translations
-        QVector3D translation;
+        vec3 translation;
         if (Input::keyPressed(Qt::Key_W))
         {
             translation += m_camera.forward();
@@ -362,6 +397,8 @@ void Window::update()
 
     // Schedule a redraw
     QOpenGLWindow::update();
+
+    last_time = now;
 }
 
 bool Window::event(QEvent *e)

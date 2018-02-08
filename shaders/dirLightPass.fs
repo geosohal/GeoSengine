@@ -93,6 +93,6 @@ void main()
         vec3 Color = texture(gColorMap, TexCoord).xyz;
         vec3 Normal = texture(gNormalMap, TexCoord).xyz;
         Normal = normalize(Normal);
-         FragColor = vec4(1,1,1, 1.0)*.3 + vec4(Color, 1.0)* CalcDirectionalLight(WorldPos, Normal);
-      //  FragColor = vec4(Color, 1.0) * CalcDirectionalLight(WorldPos, Normal);
+       //testline  FragColor = vec4(1,1,1, 1.0)*.3 + vec4(Color, 1.0)* CalcDirectionalLight(WorldPos, Normal);
+        FragColor = vec4(Color, 1.0) * CalcDirectionalLight(WorldPos, Normal);
 }

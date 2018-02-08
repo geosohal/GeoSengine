@@ -85,16 +85,17 @@ private:
 #define POS_VB       1
 #define NORMAL_VB    2
 #define TEXCOORD_VB  3
-#define WVP_MAT_VB   4
-#define WORLD_MAT_VB 5
+    // buffers for instance rendering
+//#define WVP_MAT_VB   4
+//#define WORLD_MAT_VB 5
 
     GLuint m_VAO;
-    GLuint m_Buffers[6];
+    GLuint m_Buffers[4];
 
     struct BasicMeshEntry {
         BasicMeshEntry()
         {
-            NumIndices = 0;
+            NumIndices = 0; //  number of indices in the subcomponent,
             BaseVertex = 0;
             BaseIndex = 0;
             MaterialIndex = INVALID_MATERIAL;
@@ -106,6 +107,9 @@ private:
         unsigned int MaterialIndex;
     };
 
+    // Since our model can be made of multiple subcomponents each with its own
+    //  texture we have a vector called m_Entries that contains the material
+    // index as well as the location of the subcomponent.
     std::vector<BasicMeshEntry> m_Entries;
 
     GLenum textureUnit;

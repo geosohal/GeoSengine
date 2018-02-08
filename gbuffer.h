@@ -1,6 +1,6 @@
 #ifndef GBuffer_H
 #define GBuffer_H
-#define BUFFERDEBUG
+
 class GBuffer
 {
 public:

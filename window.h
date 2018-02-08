@@ -3,6 +3,7 @@
 
 #include <QOpenGLWindow>
 #include <QMatrix4x4>
+#include <QElapsedTimer>
 #include "transform3d.h"
 #include "camera3d.h"
 #include "mesh.h"
@@ -16,6 +17,7 @@ class OpenGLShaderProgram;
 #include "openglbuffer.h"
 #include "openglvertexarrayobject.h"
 #include "texture.h"
+
 
 class QOpenGLShaderProgram;
 
@@ -53,14 +55,14 @@ private:
 //  int u_modelToWorld;
 //  int u_worldToCamera;
 //  int u_cameraToView;
-  QMatrix4x4 m_projection;
+  MAT4 m_projection;
   Camera3D m_camera;
   Transform3D m_transform;
 //  MAT4 worldProj;
   GBuffer gbuffer;
   ShaderProgram* simpleShader;
   DirLightProgram* dirLightShader;
-  ShaderProgram* lightShader;
+  ShaderProgram* geomShader;
   ShaderProgram* aoProgram;
   IBLProgram* iblShader;
   AoFbo aoFbo;
@@ -76,6 +78,8 @@ private:
   BasicMesh* floor;
   BasicMesh* spider;
   BasicMesh* quad; // used for full screen quad on light pass
+
+  QElapsedTimer timer;
 };
 
 #endif // WINDOW_H

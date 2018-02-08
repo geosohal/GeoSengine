@@ -80,7 +80,11 @@ bool BasicMesh::LoadMesh(const string& Filename)
     bool Ret = false;
     Assimp::Importer Importer;
 
-    const aiScene* pScene = Importer.ReadFile(Filename.c_str(), ASSIMP_LOAD_FLAGS);
+    const aiScene* pScene = Importer.ReadFile(Filename.c_str(), aiProcess_GenSmoothNormals |
+                                              aiProcess_Triangulate |
+                                              aiProcess_JoinIdenticalVertices |
+                                              aiProcess_SortByPType
+                                              );
 
                                               /*aiProcess_GenSmoothNormals |
                                               aiProcess_Triangulate |
@@ -164,6 +168,7 @@ bool BasicMesh::InitFromScene(const aiScene* pScene, const string& Filename)
     return GLCheckError();
 }
 
+// This function is responsible for loading each aiMesh structure that is contained in the aiScene.
 void BasicMesh::InitMesh(const aiMesh* paiMesh,
     vector<vec3>& Positions,
     vector<vec3>& Normals,
@@ -287,34 +292,35 @@ void BasicMesh::SetTextureUnit(GLenum tu)
     textureUnit = tu;
 }
 
+// for instanced rendering, note we need to change or add a new initfromscene function to use this.
 void BasicMesh::Render(unsigned int NumInstances, const MAT4* WVPMats, const MAT4* WorldMats)
 {
-    GL::glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WVP_MAT_VB]);
-    GL::glBufferData(GL_ARRAY_BUFFER, sizeof(MAT4) * NumInstances, WVPMats, GL_DYNAMIC_DRAW);
+//    GL::glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WVP_MAT_VB]);
+//    GL::glBufferData(GL_ARRAY_BUFFER, sizeof(MAT4) * NumInstances, WVPMats, GL_DYNAMIC_DRAW);
 
-    GL::glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WORLD_MAT_VB]);
-    GL::glBufferData(GL_ARRAY_BUFFER, sizeof(MAT4) * NumInstances, WorldMats, GL_DYNAMIC_DRAW);
+//    GL::glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WORLD_MAT_VB]);
+//    GL::glBufferData(GL_ARRAY_BUFFER, sizeof(MAT4) * NumInstances, WorldMats, GL_DYNAMIC_DRAW);
 
-    GL::glBindVertexArray(m_VAO);
+//    GL::glBindVertexArray(m_VAO);
 
-    for (unsigned int i = 0; i < m_Entries.size(); i++) {
-        const unsigned int MaterialIndex = m_Entries[i].MaterialIndex;
+//    for (unsigned int i = 0; i < m_Entries.size(); i++) {
+//        const unsigned int MaterialIndex = m_Entries[i].MaterialIndex;
 
-        assert(MaterialIndex < m_Textures.size());
+//        assert(MaterialIndex < m_Textures.size());
 
-        if (m_Textures[MaterialIndex]) {
-            m_Textures[MaterialIndex]->Bind(textureUnit);
-        }
+//        if (m_Textures[MaterialIndex]) {
+//            m_Textures[MaterialIndex]->Bind(textureUnit);
+//        }
 
-        GL::getInstance()->glDrawElementsInstancedBaseVertex(GL_TRIANGLES,
-            m_Entries[i].NumIndices,
-            GL_UNSIGNED_INT,
-            (void*)(sizeof(unsigned int) * m_Entries[i].BaseIndex),
-            NumInstances,
-            m_Entries[i].BaseVertex);
-    }
+//        GL::getInstance()->glDrawElementsInstancedBaseVertex(GL_TRIANGLES,
+//            m_Entries[i].NumIndices,
+//            GL_UNSIGNED_INT,
+//            (void*)(sizeof(unsigned int) * m_Entries[i].BaseIndex),
+//            NumInstances,
+//            m_Entries[i].BaseVertex);
+//    }
 
-    // Make sure the VAO is not changed from the outside
-    GL::glBindVertexArray(0);
+//    // Make sure the VAO is not changed from the outside
+//    GL::glBindVertexArray(0);
 }
 
