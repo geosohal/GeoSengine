@@ -26,6 +26,7 @@ public:
     void Use();
     void Unuse();
 	void SetUniformi(const char* uniform, int val);
+    void SetUniform2i(const char* uniform, int val1, int val2);
 	void SetUniformf(const char* uniform, float val);
 	void SetUniform4v(const char* uniform, const MAT4& matrix);
     void SetUniform4v(const char* uniform, const float* matrix);
@@ -63,7 +64,7 @@ public:
 	GLuint normalBufferLoc;
 	GLuint posBufferLoc;
 	GLuint depthMapLoc;
-	GLuint specMapLoc; //used for depth for AO
+    GLuint aoMapLoc; //used for depth for AO
 };
 
 class ShadowProgram : public ShaderProgram

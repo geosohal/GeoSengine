@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 #include "vertex.h"
 #include "input.h"
+#include "utility.h"
 #include <QQuaternion>
 
 #include "openglerror.h"
@@ -42,40 +43,6 @@ void Window::initializeGL()
     // Set global information
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-
-    // Application-specific initialization
-    {
-        //    // Create Shader (Do not release until VAO is created)
-        //    m_program = new OpenGLShaderProgram(this);
-        //    m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/simple.vert");
-        //    m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/simple.frag");
-        //    m_program->link();
-        //    m_program->bind();
-
-        //    // Cache Uniform Locations
-        //    u_modelToWorld = m_program->uniformLocation("modelToWorld");
-        //    u_worldToCamera = m_program->uniformLocation("worldToCamera");
-        //    u_cameraToView = m_program->uniformLocation("cameraToView");
-
-        //    // Create Buffer (Do not release until VAO is created)
-        //    m_vertex.create();
-        //    m_vertex.bind();
-        //    m_vertex.setUsagePattern(QOpenGLBuffer::StaticDraw);
-        //    m_vertex.allocate(sg_vertexes, sizeof(sg_vertexes));
-
-        //    // Create Vertex Array Object
-        //    m_object.create();
-        //    m_object.bind();
-        //    m_program->enableAttributeArray(0);
-        //    m_program->enableAttributeArray(1);
-        //    m_program->setAttributeBuffer(0, GL_FLOAT, Vertex::positionOffset(), Vertex::PositionTupleSize, Vertex::stride());
-        //    m_program->setAttributeBuffer(1, GL_FLOAT, Vertex::colorOffset(), Vertex::ColorTupleSize, Vertex::stride());
-
-        //    // Release (unbind) all
-        //    m_object.release();
-        //    m_vertex.release();
-        //    m_program->release();
-    }
     geomShader = new ShaderProgram();
     geomShader->AddShader("/home/geo5/GeoSengine/shaders/geometry_pass.vs", GL_VERTEX_SHADER);
     geomShader->AddShader("/home/geo5/GeoSengine/shaders/geometry_pass.fs", GL_FRAGMENT_SHADER);
@@ -98,16 +65,73 @@ void Window::initializeGL()
     dirLightShader->SetScreenSize(this->width(), this->height());
     dirLightShader->SetDirLight(dirLight);
 
-    aoFbo.CreateFBO(this->width(), this->height());
-    aoProgram = new ShaderProgram();
-    aoProgram->AddShader("/home/geo5/GeoSengine/shaders/ambientOcclusion.vs", GL_VERTEX_SHADER);
-    aoProgram->AddShader("/home/geo5/GeoSengine/shaders/ambientOcclusion.fs", GL_FRAGMENT_SHADER);
-    aoProgram->LinkProgram();
+    // ambient occlusion initialization
+    {
+        unsigned int kernalSize = 47;
+        vector<vector<unsigned int>> pascalsTriangle;
+        InitializePascalsTri(91, pascalsTriangle);
+        vector<float> weights;
+        weights.reserve(kernalSize);
+        float weightSum = 0;
+        for (int i = 0; i < kernalSize; i++)
+        {
+            weightSum += pascalsTriangle[kernalSize - 1][i];
+            if (i >50)
+                weights.push_back(0);
+            else
+                weights.push_back(pascalsTriangle[kernalSize - 1][i]);
+        }
+        for (int i = 0; i < weights.size(); i++)
+        {
+            weights[i] = weights[i];
+        }
+        aoFbo.CreateFBO(this->width(), this->height());
+        aoProgram = new ShaderProgram();
+        aoProgram->AddShader("/home/geo5/GeoSengine/shaders/ambientOcclusion.vs", GL_VERTEX_SHADER);
+        aoProgram->AddShader("/home/geo5/GeoSengine/shaders/ambientOcclusion.fs", GL_FRAGMENT_SHADER);
+        aoProgram->LinkProgram();
+        aoProgram->Use();
+        aoProgram->SetUniformi("screenWidth", width());
+        aoProgram->SetUniformi("screenHeight", height());
+
+        bilateralBlur = new ShaderProgram();
+        CHECKERRORNOX
+        bilateralBlur->AddShader("/home/geo5/GeoSengine/shaders/bilateralBlur.comp", GL_COMPUTE_SHADER);
+        bilateralBlur->LinkProgram();
+        bilateralBlur->Use();
+        bilateralBlur->SetUniformi("kernalSize", kernalSize);
+        int programId = bilateralBlur->programId;
+        GLuint blockID = 0;
+        glGenBuffers(1, &blockID); // Generates block for weights array
+        int bindpoint = 0; // Start at zero, increment for other blocks
+        int loc = glGetUniformBlockIndex(programId, "blurKernel");
+        glUniformBlockBinding(programId, loc, bindpoint);
+        glBindBufferBase(GL_UNIFORM_BUFFER, bindpoint, blockID);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(weights[0]) * weights.size(), &weights[0], GL_STATIC_DRAW);
+        glUseProgram(0);
+
+        bilateralBlurV = new ShaderProgram();
+        bilateralBlurV->AddShader("/home/geo5/GeoSengine/shaders/bilateralBlurV.comp", GL_COMPUTE_SHADER);
+        bilateralBlurV->LinkProgram();
+        bilateralBlurV->Use();
+        bilateralBlurV->SetUniformi("kernalSize", kernalSize);
+        programId = bilateralBlurV->programId;
+        glGenBuffers(1, &blockID); // Generates block for weights array
+        bindpoint++; // Start at zero, increment for other blocks
+        loc = glGetUniformBlockIndex(programId, "blurKernel");
+        glUniformBlockBinding(programId, loc, bindpoint);
+        glBindBufferBase(GL_UNIFORM_BUFFER, bindpoint, blockID);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(weights[0]) * weights.size(), &weights[0], GL_STATIC_DRAW);
+    }
+    skinningShader = new SkinProgram();
+    skinningShader->Initialize();
+    skinningShader->Use();
+    skinningShader->SetColorTextureUnit(COLOR_TEXTURE_UNIT_INDEX);
 
     iblShader = new IBLProgram();
     iblShader->Initialize();
     envMap = new Texture("/home/geo5/GeoSengine/content/Alexs_Apt_2k.hdr");
-    if (!envMap->Load(true)) {
+    if (!envMap->Load(false)) {
         CHECKERRORNOX
                 printf("Error loading texture env");
         delete envMap;
@@ -119,7 +143,7 @@ void Window::initializeGL()
     }
 
     irradMap = new Texture("/home/geo5/GeoSengine/content/Alexs_Apt_2k.irr.hdr");
-    if (!irradMap->Load(true)) {
+    if (!irradMap->Load(false)) {
         CHECKERRORNOX
                 printf("Error loading irrad env");
         delete irradMap;
@@ -131,6 +155,9 @@ void Window::initializeGL()
     }
 
     // load meshes
+    skeleton = new AnimatedModel();
+    skeleton->LoadMesh("/home/geo5/GeoSengine/content/gh_sample_animation.fbx");
+    skeleton->isWalking = true;	// do one frame of animations so character is transformed.
     dragonMesh = new BasicMesh();
     dragonMesh->LoadMesh("/home/geo5/GeoSengine/content/Dragon.obj");
     quad = new BasicMesh();
@@ -140,6 +167,8 @@ void Window::initializeGL()
     spider = new BasicMesh();
     spider->LoadMesh("/home/geo5/GeoSengine/content/spider.obj");
     //    dragonMesh->LoadMesh("/home/geo5/GeoSengine/content/gh_sample_animation.fbx");
+    skyDome = new BasicMesh();
+    skyDome->LoadMesh("/home/geo5/GeoSengine/content/msphere3.obj");
 
     QQuaternion q1 = QQuaternion(.3, QVector3D(1,0,0));
     QQuaternion q2 = QQuaternion(.5, QVector3D(.5,.5,0));
@@ -170,7 +199,7 @@ void Window::initializeGL()
 void Window::resizeGL(int width, int height)
 {
     m_projection = Identity;
-    float ry = .4f;  float front = 0.1; float back = 200.0f;
+    float ry = .4f;  float front = 2.1; float back = 200.0f;
     m_projection =  Perspective((ry*width) / height, ry, front, back);
     // m_projection.perspective(45.0f, width / float(height), 0.0f, 2000.0f);
 
@@ -217,6 +246,9 @@ void Window::paintGL()
 
 
      currShader->Use();
+#ifdef DEFERRED
+     currShader->SetUniformi("depthMap", gbuffer.depthTexture);
+#endif
 
     currShader->SetUniform4v("gVP", VPmatrix );
     MAT4 wtrans = Translate(-2.f,-4.2,-4.1)* Scale(1.5f, 1.5f, 1.5f);
@@ -226,24 +258,32 @@ void Window::paintGL()
 
     wtrans = Translate(2.2f+tsin*2,-1.8+tsin*3,-1+tsin*4)* Scale(0.21f, 0.21f, 0.21f);
     currShader->SetUniform4v("gWorld", wtrans );
+ //   spider->Render();
 
-    MAT4 wvp = VPmatrix * wtrans;
-    vec4 testPos = vec4(4,5,2,1);
-    testPos = MAT4toGLM(wvp) * testPos;
+    // draw big sky sphere
+    wtrans = Translate(0, 0, -1.5f)*  Scale(68.05f, 68.05f, 68.05f);
+    currShader->SetUniform4v("gWorld", wtrans );
+    skyDome->Render();
 
-    wtrans = Translate(1.2f+tsin*2,tsin,-1+tsin)* Scale(0.21f, 0.21f, 0.21f);
-    wvp = VPmatrix * wtrans;
-    testPos = vec4(4,5,2,1);
-    testPos = MAT4toGLM(wvp) * testPos;
-
-      spider->Render();
     currShader->Unuse();
 
-    vec3 eye = m_camera.translation();
-    // Deferred shading light pass
 
+
+    {
+         wtrans = Translate(0, 0, 2.5f)* Rotate(2, -180.f) * Scale(2, 2, 2);
+            skinningShader->Use();
+            skinningShader->SetUniform4v("gVP", VPmatrix);
+            skinningShader->SetUniform4v("gWorld", wtrans);
+            vector<MAT4> boneTransforms;
+            skeleton->GetTransforms(boneTransforms);
+            for (int i = 0; i < boneTransforms.size(); i++)
+                skinningShader->SetBoneTransform(i, boneTransforms[i]);
+            skeleton->RenderModel();
+        }
+    // Deferred shading light pass
 #ifdef DEFERRED
     {
+
         #ifndef GBUFFDEBUG
         glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
@@ -262,13 +302,40 @@ void Window::paintGL()
       aoProgram->Use();
       aoProgram->SetUniformi("positionMap", GBuffer::GBUFFER_TYPE_POS);
       aoProgram->SetUniformi("normalMap", GBuffer::GBUFFER_TYPE_NORMAL);
-      aoProgram->SetUniformi("depthMap", GBuffer::GBUFFER_TYPE_SPEC);	// specular is not spec, but it has
-      //depth in .z component of the vec3
+      gbuffer.BindDepthForRead(GL_TEXTURE0 + gbuffer.depthTexture);
+      aoProgram->SetUniformi("depthMap", gbuffer.depthTexture);	// specular is not spec, but it has
+                                                                        //depth in .z component of the vec3
       quad->Render();
       aoFbo.UnbindWrite();	// switch back to default framebuffer
+int w = width();
+int h = height();
+//      //////////////////////
+      // bi lateral blur pass, aoTexture -> aoTextureF
+      bilateralBlur->Use();
+      //bilateralBlur->SetUniformi("kernalSize", kernalSize);
+      bilateralBlur->SetUniformi("normalMap", GBuffer::GBUFFER_TYPE_NORMAL);
+      gbuffer.BindDepthForRead(GL_TEXTURE0 + gbuffer.depthTexture);
+      bilateralBlur->SetUniformi("depthMap", gbuffer.depthTexture);
+      bilateralBlur->SetUniform2i("dimensions",width(), height());
+      glBindImageTexture(0, aoFbo.aoTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+      bilateralBlur->SetUniformi("src", 0);
+      glBindImageTexture(1, aoFbo.aoTextureF, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+      bilateralBlur->SetUniformi("dst", 1);
+      glDispatchCompute(width() / 100, (GLuint)height(), (GLuint)1); // Tiles WxH image with groups sized 128x1
+      glMemoryBarrier(GL_ALL_BARRIER_BITS);
+      ////////////////////// vertical pass, aoTextureF -> aoTexture, so aoTexture is the final blurred texture
+      bilateralBlurV->Use();
+     // bilateralBlurV->SetUniformi("kernalSize", kernalSize);
+      bilateralBlurV->SetUniformi("normalMap", GBuffer::GBUFFER_TYPE_NORMAL);
+      bilateralBlurV->SetUniformi("depthMap", gbuffer.depthTexture);
+      bilateralBlurV->SetUniform2i("dimensions", width(), height());
+      glBindImageTexture(0, aoFbo.aoTextureF, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+      bilateralBlurV->SetUniformi("src", 0);
+      glBindImageTexture(1, aoFbo.aoTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+      bilateralBlurV->SetUniformi("dst", 1);
+      glDispatchCompute(width() , height()/ 100, 1); // Tiles WxH image with groups sized 128x1
 
-      // todo add bilateral blur
-
+      vec3 eye = m_camera.translation();
       envMap->Bind(GL_TEXTURE0 + 8);
       irradMap->Bind(GL_TEXTURE0 + 9);
       iblShader->Use();
@@ -276,8 +343,8 @@ void Window::paintGL()
       iblShader->SetIrradTU(9);
       iblShader->SetVP(VPmatrix);
       iblShader->SetWorldMatrix(Identity);
-      iblShader->SetAOMap(aoFbo.aoTexture);
       aoFbo.BindForRead(GL_TEXTURE0 + aoFbo.aoTexture);
+      iblShader->SetAOMap(aoFbo.aoTexture);
       iblShader->SetNormalTU(GBuffer::GBUFFER_TYPE_NORMAL);
       iblShader->SetPosTU(GBuffer::GBUFFER_TYPE_POS);
       iblShader->SetUniformi("colorMap",  GBuffer::GBUFFER_TYPE_DIFFUSE);
@@ -285,13 +352,11 @@ void Window::paintGL()
       iblShader->SetScreenDim(this->width(), this->height());
       quad->Render();
 
-
-
-        // directinal light pass
+        // directinal light pass for deferred rendering
         dirLightShader->Use();
         dirLightShader->SetEyeWorldPos(eye.x,eye.y,eye.z);
         dirLightShader->SetWVP(Identity);
-        quad->Render();
+      //  quad->Render();
         dirLightShader->Unuse();
     #endif
     }
@@ -477,3 +542,5 @@ void Window::printVersionInformation()
     // qPrintable() will print our QString w/o quotes around it.
     qDebug() << qPrintable(glType) << qPrintable(glVersion) << "(" << qPrintable(glProfile) << ")";
 }
+
+

@@ -1,5 +1,7 @@
 #include <QGuiApplication>
 #include "window.h"
+#include <QtQuickControls2>
+//#include <QPushButton>
 
 static bool checkVersion(QOpenGLContext &context, QSurfaceFormat &format)
 {
@@ -74,6 +76,7 @@ int main(int argc, char *argv[])
   window.setFormat(*format);
   window.resize(QSize(800, 600));
   window.show();
+
 
   return app.exec();
 }

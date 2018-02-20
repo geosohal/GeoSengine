@@ -11,6 +11,7 @@
 #include "shader.h"
 #include "gbuffer.h"
 #include "aoBuffer.h"
+#include "AnimatedModel.h"
 // OpenGL Classes
 class OpenGLError;
 class OpenGLShaderProgram;
@@ -62,9 +63,12 @@ private:
   GBuffer gbuffer;
   ShaderProgram* simpleShader;
   DirLightProgram* dirLightShader;
-  ShaderProgram* geomShader;
+  ShaderProgram* geomShader; // for deferred shading
   ShaderProgram* aoProgram;
   IBLProgram* iblShader;
+  SkinProgram* skinningShader;  // for character skin
+  ShaderProgram* bilateralBlur; // compute shaders for blurring SSAO map
+  ShaderProgram* bilateralBlurV;
   AoFbo aoFbo;
   Texture* envMap;
   Texture* irradMap;
@@ -78,6 +82,8 @@ private:
   BasicMesh* floor;
   BasicMesh* spider;
   BasicMesh* quad; // used for full screen quad on light pass
+  BasicMesh* skyDome;
+  AnimatedModel* skeleton;  // character
 
   QElapsedTimer timer;
 };

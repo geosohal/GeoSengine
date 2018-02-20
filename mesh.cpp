@@ -80,11 +80,7 @@ bool BasicMesh::LoadMesh(const string& Filename)
     bool Ret = false;
     Assimp::Importer Importer;
 
-    const aiScene* pScene = Importer.ReadFile(Filename.c_str(), aiProcess_GenSmoothNormals |
-                                              aiProcess_Triangulate |
-                                              aiProcess_JoinIdenticalVertices |
-                                              aiProcess_SortByPType
-                                              );
+    const aiScene* pScene = Importer.ReadFile(Filename.c_str(), ASSIMP_LOAD_FLAGS);
 
                                               /*aiProcess_GenSmoothNormals |
                                               aiProcess_Triangulate |

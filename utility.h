@@ -4,7 +4,7 @@
 // utility functions for interpolation and other
 
 
-//#include <glu.h>
+#include <vector>
 
 
 namespace Util
@@ -15,6 +15,10 @@ namespace Util
 		return (1-t)*p1 + t*p2 ;
 	}
 
+
+
 }
+
+void InitializePascalsTri(int numberOfRows, std::vector<std::vector<unsigned int>>& pascalsTriangle);
 
 #endif

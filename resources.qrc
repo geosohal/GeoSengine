@@ -14,5 +14,7 @@
         <file>shaders/IBL.fs</file>
         <file>shaders/IBL.vs</file>
         <file>shaders/lightPass.vs</file>
+        <file>shaders/skinningShader.fs</file>
+        <file>shaders/skinningShader.vs</file>
     </qresource>
 </RCC>

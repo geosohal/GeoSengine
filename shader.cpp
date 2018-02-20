@@ -112,9 +112,15 @@ void ShaderProgram::LinkProgram()
 void ShaderProgram::SetUniformi(const char* uniform, int val)
 {
     int loc = GL::glGetUniformLocation(programId, (GLchar*)uniform);
-    CHECKERRORNOX
     GL::glUniform1i(loc, val);
+    CHECKERRORNOX
+}
 
+void ShaderProgram::SetUniform2i(const char* uniform, int val1, int val2)
+{
+    int loc = GL::glGetUniformLocation(programId, (GLchar*)uniform);
+    GL::glUniform2f(loc, val1, val2);
+    CHECKERRORNOX
 }
 void ShaderProgram::SetUniformf(const char* uniform, float val)
 {
@@ -160,7 +166,7 @@ void IBLProgram::Initialize()
     normalBufferLoc = GL::glGetUniformLocation(programId, "normalMap");
     posBufferLoc = GL::glGetUniformLocation(programId, "positionMap");
     depthMapLoc = GL::glGetUniformLocation(programId, "depthMap");
-    specMapLoc = GL::glGetUniformLocation(programId, "aoMap");
+    aoMapLoc = GL::glGetUniformLocation(programId, "aoMap");
 }
 
 void IBLProgram::SetRandomness(float r)
@@ -239,13 +245,13 @@ void IBLProgram::SetDepthMap(unsigned int TU)
 
 void IBLProgram::SetAOMap(unsigned int TU)
 {
-    GL::glUniform1i(specMapLoc, TU);
+    GL::glUniform1i(aoMapLoc, TU);
     CHECKERRORNOX
 }
 void ShadowProgram::Initialize()
 {
-    AddShader("shadowmap.vs", GL_VERTEX_SHADER);
-    AddShader("shadowmap.fs", GL_FRAGMENT_SHADER);
+    AddShader("/home/geo5/GeoSengine/shaders/shadowmap.vs", GL_VERTEX_SHADER);
+    AddShader("/home/geo5/GeoSengine/shaders/shadowmap.fs", GL_FRAGMENT_SHADER);
     CHECKERRORNOX
     LinkProgram();
 
@@ -271,8 +277,8 @@ SkinProgram::SkinProgram()
 }
 void SkinProgram::Initialize()
 {
-    AddShader("skinningShader.vs", GL_VERTEX_SHADER);
-    AddShader("skinningShader.fs", GL_FRAGMENT_SHADER);
+    AddShader("/home/geo5/GeoSengine/shaders/skinningShader.vs", GL_VERTEX_SHADER);
+    AddShader("/home/geo5/GeoSengine/shaders/skinningShader.fs", GL_FRAGMENT_SHADER);
     CHECKERRORNOX
     LinkProgram();
     for (unsigned int i = 0; i < ARRAY_SIZE_IN_ELEMENTS(boneLocation); i++)
@@ -434,7 +440,7 @@ void DirLightProgram::Initialize()
 {
     AddShader("/home/geo5/GeoSengine/shaders/dirLightPass.fs", GL_FRAGMENT_SHADER);
 
-{
+    {
         GLenum err = GL::glGetError();
         if (err != GL_NO_ERROR) {
             fprintf(stderr, "OpenGL Serror (at line %d): ", __LINE__);

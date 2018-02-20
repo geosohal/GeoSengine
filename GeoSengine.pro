@@ -1,5 +1,5 @@
 QT += core gui
-
+QT += quickcontrols2
 CONFIG += c++11 console
 CONFIG -= app_bundle
 
@@ -52,7 +52,8 @@ SOURCES += main.cpp \
     gbuffer.cpp \
     SphericalHarmonics.cpp \
     aoBuffer.cpp \
-    rgbe.cpp
+    rgbe.cpp \
+    utility.cpp
 
 
 HEADERS += \
@@ -134,6 +135,7 @@ unix: !macx {
 
 INCLUDEPATH += $$PWD/OpenGL
 INCLUDEPATH += $$PWD/assimp
+INCLUDEPATH += /opt/Qt/5.3/Src/qtbase/include/QtWidgets
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/libs/release/ -lassimp
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/libs/debug/ -lassimp
 else:unix: LIBS += -L$$PWD/libs/ -lassimp
