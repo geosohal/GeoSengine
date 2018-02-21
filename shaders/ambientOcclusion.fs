@@ -7,10 +7,11 @@ const float MIN_DEPTH = .3f;
 const float MAX_DEPTH = 4.0f;
 
 // ambient occlusion constants
-const float ROI = 10.5f;	// range of influence
-const float AOC = .15;	// .1 * ROI, const for falloff function
-const float AOCSQ = .0225f;
-const float DELTA = 0.0025f;
+uniform float ROI = 10.5f;	// range of influence
+uniform float AOC = .15;	// .1 * ROI, const for falloff function
+uniform float AOCSQ = .0225f;
+uniform float DELTA = 0.0025f;
+uniform float numSamples = 20;
 
 uniform sampler2D positionMap;// from gbuffer
 uniform sampler2D normalMap;	// from gbuffer

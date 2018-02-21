@@ -4,6 +4,7 @@
 #include <QOpenGLWindow>
 #include <QMatrix4x4>
 #include <QElapsedTimer>
+#include <QString>
 #include "transform3d.h"
 #include "camera3d.h"
 #include "mesh.h"
@@ -22,6 +23,7 @@ class OpenGLShaderProgram;
 
 class QOpenGLShaderProgram;
 
+
 class Window : public QOpenGLWindow,
                protected OpenGLFunctions
 {
@@ -29,11 +31,21 @@ class Window : public QOpenGLWindow,
 
 // OpenGL Events
 public:
+
+    enum SHADERTYPE
+    {
+        SSAO, IBL, OTHER
+    };
+
   Window();
   ~Window();
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
+
+
+  void updateShaderUniform(SHADERTYPE shaderType, const QString& uniform, float value);
+  void updateShaderUniform(SHADERTYPE shaderType, const QString& uniform, int value);
 protected slots:
   void teardownGL();
   void update();
@@ -73,6 +85,8 @@ private:
   Texture* envMap;
   Texture* irradMap;
   MAT4 Identity;
+  float near;   // near/far planes
+  float far;
 
   // Private Helpers
   void printVersionInformation();

@@ -1,6 +1,8 @@
-#include <QGuiApplication>
+//#include <QGuiApplication>
 #include "window.h"
-#include <QtQuickControls2>
+#include "optionsdialog.h"
+#include <QApplication>
+//#include <QtQuickControls2>
 //#include <QPushButton>
 
 static bool checkVersion(QOpenGLContext &context, QSurfaceFormat &format)
@@ -31,7 +33,7 @@ static QSurfaceFormat* getFirstSupported(std::vector<QSurfaceFormat> &formats)
 
 int main(int argc, char *argv[])
 {
-  QGuiApplication app(argc, argv);
+  QApplication app(argc, argv);
 
   // Set OpenGL Version information
   // Note: This format must be set before show() is called.
@@ -76,6 +78,10 @@ int main(int argc, char *argv[])
   window.setFormat(*format);
   window.resize(QSize(800, 600));
   window.show();
+
+  OptionsDialog options;
+  options.setWindow(&window);
+  options.show();
 
 
   return app.exec();

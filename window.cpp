@@ -1,6 +1,5 @@
 #include "window.h"
 #include <QDebug>
-#include <QString>
 #include <QKeyEvent>
 #include "vertex.h"
 #include "input.h"
@@ -192,6 +191,8 @@ void Window::initializeGL()
 #endif
 
     timer.start();
+    near = 2.f;
+    far = 200.f;
     printf("\n");
 
 }
@@ -199,8 +200,8 @@ void Window::initializeGL()
 void Window::resizeGL(int width, int height)
 {
     m_projection = Identity;
-    float ry = .4f;  float front = 2.1; float back = 200.0f;
-    m_projection =  Perspective((ry*width) / height, ry, front, back);
+    float ry = .4f;
+    m_projection =  Perspective((ry*width) / height, ry, near, far);
     // m_projection.perspective(45.0f, width / float(height), 0.0f, 2000.0f);
 
     // worldProj = Perspective((m_camera.ry*width) / height, m_camera.ry, m_camera.front, m_camera.back);
@@ -466,6 +467,34 @@ void Window::update()
     last_time = now;
 }
 
+void Window::updateShaderUniform(SHADERTYPE shaderType, const QString& uniform, float value)
+{
+    switch (shaderType)
+    {
+        case SSAO:
+            aoProgram->Use();
+            aoProgram->SetUniformf((char*)uniform.data(), value);
+        break;
+        case OTHER:
+            if (uniform == "near")
+                near = value;
+            else if ( uniform == "far")
+                far = value;
+            resizeGL(width(), height());
+        break;
+    }
+}
+
+void Window::updateShaderUniform(SHADERTYPE shaderType, const QString& uniform, int value)
+{
+    switch (shaderType)
+    {
+        case SSAO:
+            aoProgram->Use();
+            aoProgram->SetUniformi((char*)uniform.data(), value);
+            break;
+    }
+}
 bool Window::event(QEvent *e)
 {
     if (e->type() == OpenGLError::type())

@@ -1,10 +1,10 @@
 QT += core gui
-QT += quickcontrols2
+QT += widgets
 CONFIG += c++11 console
 CONFIG -= app_bundle
 
 CONFIG += gl_debug
-
+TEMPLATE = app
 
 # leave debug wrappers and macros for debug build only
 CONFIG(debug,debug|release) {
@@ -53,7 +53,8 @@ SOURCES += main.cpp \
     SphericalHarmonics.cpp \
     aoBuffer.cpp \
     rgbe.cpp \
-    utility.cpp
+    utility.cpp \
+    optionsdialog.cpp
 
 
 HEADERS += \
@@ -123,7 +124,8 @@ HEADERS += \
     gbuffer.h \
     SphericalHarmonics.h \
     aoBuffer.h \
-    rgbe.h
+    rgbe.h \
+    optionsdialog.h
 
 
 RESOURCES += \
@@ -135,10 +137,12 @@ unix: !macx {
 
 INCLUDEPATH += $$PWD/OpenGL
 INCLUDEPATH += $$PWD/assimp
-INCLUDEPATH += /opt/Qt/5.3/Src/qtbase/include/QtWidgets
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/libs/release/ -lassimp
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/libs/debug/ -lassimp
 else:unix: LIBS += -L$$PWD/libs/ -lassimp
 
 INCLUDEPATH += $$PWD/libs
 DEPENDPATH += $$PWD/libs
+
+FORMS += \
+    optionsdialog.ui
