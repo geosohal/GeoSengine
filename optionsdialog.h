@@ -32,6 +32,14 @@ private slots:
 
     void on_spinFarPlane_valueChanged(double arg1);
 
+    void on_doubleSpinBox_2_valueChanged(double arg1);
+
+    void on_contrastSpinBox_2_valueChanged(double arg1);
+
+    void on_doubleSpinBox_3_valueChanged(double arg1);
+
+    void on_scaleSpinBox_3_valueChanged(double arg1);
+
 private:
     Ui::OptionsDialog *ui;
     Window *window;

@@ -52,3 +52,14 @@ void OptionsDialog::on_spinFarPlane_valueChanged(double arg1)
 {
      window->updateShaderUniform(Window::OTHER, "far", (float)arg1);
 }
+
+void OptionsDialog::on_doubleSpinBox_2_valueChanged(double arg1)
+{
+     window->updateShaderUniform(Window::SSAO, "contrast", (float)arg1);
+}
+
+
+void OptionsDialog::on_scaleSpinBox_3_valueChanged(double arg1)
+{
+    window->updateShaderUniform(Window::SSAO, "scale", (float)arg1);
+}

@@ -66,7 +66,7 @@ void Window::initializeGL()
 
     // ambient occlusion initialization
     {
-        unsigned int kernalSize = 47;
+        unsigned int kernalSize = 57;
         vector<vector<unsigned int>> pascalsTriangle;
         InitializePascalsTri(91, pascalsTriangle);
         vector<float> weights;
@@ -473,7 +473,7 @@ void Window::updateShaderUniform(SHADERTYPE shaderType, const QString& uniform, 
     {
         case SSAO:
             aoProgram->Use();
-            aoProgram->SetUniformf((char*)uniform.data(), value);
+            aoProgram->SetUniformf(uniform.toStdString().c_str(), value);
         break;
         case OTHER:
             if (uniform == "near")
@@ -491,7 +491,7 @@ void Window::updateShaderUniform(SHADERTYPE shaderType, const QString& uniform, 
     {
         case SSAO:
             aoProgram->Use();
-            aoProgram->SetUniformi((char*)uniform.data(), value);
+            aoProgram->SetUniformi(uniform.toStdString().c_str(), value);
             break;
     }
 }

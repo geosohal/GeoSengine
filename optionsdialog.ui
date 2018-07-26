@@ -113,8 +113,8 @@
   <widget class="QLineEdit" name="lineEdit">
    <property name="geometry">
     <rect>
-     <x>170</x>
-     <y>270</y>
+     <x>20</x>
+     <y>310</y>
      <width>113</width>
      <height>25</height>
     </rect>
@@ -154,18 +154,18 @@
     <rect>
      <x>370</x>
      <y>380</y>
-     <width>61</width>
+     <width>81</width>
      <height>26</height>
     </rect>
    </property>
    <property name="decimals">
-    <number>4</number>
+    <number>5</number>
    </property>
    <property name="maximum">
     <double>20.000000000000000</double>
    </property>
    <property name="singleStep">
-    <double>0.010000000000000</double>
+    <double>0.005000000000000</double>
    </property>
    <property name="value">
     <double>0.025000000000000</double>
@@ -190,8 +190,8 @@
   <widget class="QDoubleSpinBox" name="doubleSpinBox">
    <property name="geometry">
     <rect>
-     <x>390</x>
-     <y>220</y>
+     <x>389</x>
+     <y>136</y>
      <width>62</width>
      <height>26</height>
     </rect>
@@ -203,8 +203,8 @@
   <widget class="QDoubleSpinBox" name="spinFarPlane">
    <property name="geometry">
     <rect>
-     <x>390</x>
-     <y>250</y>
+     <x>389</x>
+     <y>166</y>
      <width>62</width>
      <height>26</height>
     </rect>
@@ -219,8 +219,8 @@
   <widget class="QLabel" name="label_5">
    <property name="geometry">
     <rect>
-     <x>353</x>
-     <y>226</y>
+     <x>352</x>
+     <y>142</y>
      <width>31</width>
      <height>17</height>
     </rect>
@@ -232,8 +232,8 @@
   <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
-     <x>361</x>
-     <y>254</y>
+     <x>360</x>
+     <y>170</y>
      <width>21</width>
      <height>17</height>
     </rect>
@@ -242,6 +242,94 @@
     <string>Far</string>
    </property>
   </widget>
+  <widget class="QLabel" name="label_7">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>320</y>
+     <width>54</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Contrast</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_8">
+   <property name="geometry">
+    <rect>
+     <x>323</x>
+     <y>294</y>
+     <width>31</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Scale</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>320</y>
+     <width>62</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="decimals">
+    <number>3</number>
+   </property>
+   <property name="value">
+    <double>1.550000000000000</double>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>250</y>
+     <width>171</width>
+     <height>231</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>SSAO</string>
+   </property>
+   <widget class="QDoubleSpinBox" name="scaleSpinBox_3">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>40</y>
+      <width>62</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="decimals">
+     <number>3</number>
+    </property>
+   </widget>
+  </widget>
+  <zorder>groupBox</zorder>
+  <zorder>buttonBox</zorder>
+  <zorder>horizontalSlider</zorder>
+  <zorder>pushButton</zorder>
+  <zorder>label</zorder>
+  <zorder>label_2</zorder>
+  <zorder>label_3</zorder>
+  <zorder>label_4</zorder>
+  <zorder>lineEdit</zorder>
+  <zorder>spinBoxRoi</zorder>
+  <zorder>spinBoxAoc</zorder>
+  <zorder>spinBoxDelta</zorder>
+  <zorder>SpinBoxSamples</zorder>
+  <zorder>doubleSpinBox</zorder>
+  <zorder>spinFarPlane</zorder>
+  <zorder>label_5</zorder>
+  <zorder>label_6</zorder>
+  <zorder>label_7</zorder>
+  <zorder>label_8</zorder>
+  <zorder>doubleSpinBox_2</zorder>
  </widget>
  <resources/>
  <connections>
